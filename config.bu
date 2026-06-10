@@ -43,7 +43,7 @@ systemd:
           ubuntu:24.04 \
           bash -c "apt-get update -qq && \
                    apt-get install -y -qq git && \
-                   git clone https://github.com/TU-USUARIO/TU-REPO.git /app && \
+                   git clone https://github.com/chox-1998/201800632_LAB_P1_SO1_VacJun2026 /app && \
                    chmod +x /app/entrypoint.sh && \
                    /app/entrypoint.sh"
         ExecStop=docker stop sopes1-ubuntu
