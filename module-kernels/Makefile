@@ -10,12 +10,6 @@ all:
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
 
-install:
-	sudo insmod continfo.ko
-
-uninstall:
-	sudo rmmod continfo
-
 reload: uninstall install
 
 .PHONY: all clean install uninstall reload
