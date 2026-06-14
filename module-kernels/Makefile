@@ -1,7 +1,21 @@
-obj-m += sysinfo.o
+obj-m += continfo.o
+
+# Apunta al kernel actualmente en ejecución de la VM
+KDIR := /lib/modules/$(shell uname -r)/build
+PWD  := $(shell pwd)
 
 all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
 clean:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
+
+install:
+	sudo insmod continfo.ko
+
+uninstall:
+	sudo rmmod continfo
+
+reload: uninstall install
+
+.PHONY: all clean install uninstall reload
