@@ -19,17 +19,10 @@ MODULE_AUTHOR("Estudiante USAC");
 MODULE_DESCRIPTION("Modulo de kernel para telemetria de contenedores - SO1");
 MODULE_VERSION("1.0");
 
-/* 
- * Cambia #CARNET por tu número de carnet real.
- * Ejemplo: continfo_pr1_so1_202012345
- */
-#define PROC_FILENAME "continfo_pr1_so1_CARNET"
+
+#define PROC_FILENAME "continfo_pr1_so1_201800632"
 
 static struct proc_dir_entry *proc_entry;
-
-/* ---------------------------------------------------------------
- * Helpers
- * --------------------------------------------------------------- */
 
 /*
  * Obtiene el porcentaje de CPU de un proceso usando utime + stime.
@@ -42,24 +35,17 @@ static unsigned long get_cpu_percent(struct task_struct *task)
     unsigned long utime = 0, stime = 0;
     unsigned long total_jiffies;
 
-    /* task_cputime_adjusted puede no estar disponible en todas las versiones;
-       usamos el campo directo del task_struct */
     utime = task->utime;
     stime = task->stime;
 
     total_jiffies = utime + stime;
 
-    /* Retornamos jiffies totales * 100 / HZ como aproximación de segundos de CPU */
     if (HZ == 0)
         return 0;
 
     return (total_jiffies * 100) / HZ;
 }
 
-/*
- * Determina si un proceso está relacionado con Docker/contenedores.
- * Estrategia: busca el nombre del proceso o sus ancestros típicos de Docker.
- */
 static int is_container_process(struct task_struct *task)
 {
     struct task_struct *parent;
@@ -93,15 +79,14 @@ static int is_container_process(struct task_struct *task)
     return 0;
 }
 
-/* ---------------------------------------------------------------
- * Función principal: genera el contenido del archivo /proc
- * --------------------------------------------------------------- */
+
+// Función principal: genera el contenido del archivo /proc
 static int continfo_show(struct seq_file *m, void *v)
 {
     struct task_struct *task;
     struct mm_struct *mm;
 
-    /* ---- Métricas de RAM del sistema ---- */
+    // Métricas de RAM del sistema 
     struct sysinfo si;
     si_meminfo(&si);
 
@@ -115,7 +100,7 @@ static int continfo_show(struct seq_file *m, void *v)
     seq_printf(m, "  \"ram_used_mb\": %lu,\n",  used_ram_mb);
     seq_printf(m, "  \"processes\": [\n");
 
-    /* ---- Iteración sobre todos los procesos ---- */
+    // Iteración sobre todos los procesos
     int first = 1;
 
     rcu_read_lock();
@@ -128,14 +113,14 @@ static int continfo_show(struct seq_file *m, void *v)
         char cmdline[256];
         int is_container;
 
-        /* Solo procesos activos */
+        // Solo procesos activos
         if (task->pid <= 0)
             continue;
 
         get_task_comm(comm, task);
         is_container = is_container_process(task);
 
-        /* Memoria virtual (VSZ) y física (RSS) */
+        // Memoria virtual (VSZ) y física (RSS)
         mm = task->mm;
         if (mm) {
             vsz_kb = (mm->total_vm << PAGE_SHIFT) >> 10;
@@ -150,7 +135,6 @@ static int continfo_show(struct seq_file *m, void *v)
 
         cpu_percent = get_cpu_percent(task);
 
-        /* Línea de comando simplificada: usamos comm + PID como ID */
         snprintf(cmdline, sizeof(cmdline), "%s[%d]", comm, task->pid);
 
         if (!first)
@@ -189,9 +173,8 @@ static const struct proc_ops continfo_fops = {
     .proc_release = single_release,
 };
 
-/* ---------------------------------------------------------------
- * Init / Exit
- * --------------------------------------------------------------- */
+
+// Init / Exit/
 static int __init continfo_init(void)
 {
     proc_entry = proc_create(PROC_FILENAME, 0444, NULL, &continfo_fops);
